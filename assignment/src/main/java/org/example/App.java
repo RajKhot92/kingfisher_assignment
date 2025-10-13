@@ -1,6 +1,6 @@
 package org.example;
 
-import com.assignment.PromotionEngine;
+import com.assignment.job.PromotionEngine;
 
 /**
  * Hello world!
