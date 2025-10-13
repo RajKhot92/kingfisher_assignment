@@ -19,6 +19,7 @@ public class PromotionEngine {
         initializeSKUPrice();
         initializePromotion();
         initializeCart();
+        processCart();
     }
 
     public void addToCart(String skuId, int qty) throws Exception {
@@ -32,9 +33,32 @@ public class PromotionEngine {
                 .filter(x-> x.getSkuId().equals(skuUnit.getSkuId()))
                 .findAny();
         if(existUnit.isPresent()){
-            double updatedPrice = existUnit.get().getPrice() * skuUnit.getQty();
-            skuUnit.setPrice(updatedPrice);
-            return skuUnit;
+
+            Optional<Promotion> existPromotion = listPromotion.stream().distinct()
+                    .filter(x-> x.getOffer().contains(skuUnit.getSkuId()))
+                    .findAny();
+            if (existPromotion.isPresent()){
+                String offer = existPromotion.get().getOffer();
+                if (offer.contains("*")) {
+                    int id = offer.indexOf("*");
+                    int offerQty = Integer.parseInt(offer.substring(id + 1));
+                    int remQty = (skuUnit.getQty() % offerQty);
+                    int offerCnt = (skuUnit.getQty() / offerQty);
+
+                    double remPrice = existUnit.get().getPrice() * remQty;
+                    double offerPrice = existPromotion.get().getPrice() * offerCnt;
+
+                    double updatedPrice = remPrice + offerPrice;
+                    skuUnit.setPrice(updatedPrice);
+                    return skuUnit;
+                }else {
+                    return null;
+                }
+            }else {
+                double updatedPrice = existUnit.get().getPrice() * skuUnit.getQty();
+                skuUnit.setPrice(updatedPrice);
+                return skuUnit;
+            }
         }else{
             throw new Exception("Invalid SKU Unit added to cart!");
         }
@@ -115,7 +139,7 @@ public class PromotionEngine {
         try {
             updatePromotion("A*3", 130);
             updatePromotion("B*2", 45);
-            updatePromotion("C&D", 30);
+//            updatePromotion("C&D", 30);
 
             listPromotion.forEach(x -> System.out.println(x.toString()));
         }catch (Exception e){
@@ -125,13 +149,21 @@ public class PromotionEngine {
 
     private void initializeCart() {
         try {
-            addToCart("A", 4);
-            addToCart("B", 2);
-            addToCart("C", 3);
+            addToCart("A", 5);
+            addToCart("B", 5);
+            addToCart("C", 1);
 
             cart.forEach(x -> System.out.println(x.toString()));
         }catch (Exception e){
             logger.info("Error occurred while initializing cart. " + e.getMessage());
         }
+    }
+
+    private void processCart() {
+        double finalAmount = 0;
+        for (SKUUnit unit :cart){
+            finalAmount += unit.getPrice();
+        }
+        System.out.println("Final Amount: "+finalAmount);
     }
 }
