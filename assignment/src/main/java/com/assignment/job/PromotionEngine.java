@@ -110,35 +110,35 @@ public class PromotionEngine {
         }
     }
 
-    boolean isValidSKUId(String skuId) throws Exception {
+    public boolean isValidSKUId(String skuId) throws Exception {
         if(!listSKU.contains(skuId)){
             throw new Exception("Invalid SKU Id "+skuId);
         }
         return true;
     }
 
-    boolean isValidQty(int qty) throws Exception {
+    public boolean isValidQty(int qty) throws Exception {
         if(qty <= 0){
             throw new Exception("Quantity can't be zero");
         }
         return true;
     }
 
-    boolean isValidPrice(double price) throws Exception {
+    public boolean isValidPrice(double price) throws Exception {
         if(price <= 0){
             throw new Exception("Unit price can't be zero");
         }
         return true;
     }
 
-    boolean isEmpty(String qty) throws Exception {
+    public boolean isEmpty(String qty) throws Exception {
         if(qty.isEmpty()) {
-            throw new Exception("Promotion quantity can't be blank ");
+            throw new Exception("Promotion quantity can't be blank");
         }
         return false;
     }
 
-    void updateSKUUnitPrice(String skuId, double newPrice) throws Exception {
+    public void updateSKUUnitPrice(String skuId, double newPrice) throws Exception {
         if(isValidSKUId(skuId) && isValidPrice(newPrice)) {
             listSKUUnit.add(new SKUUnit(skuId, newPrice));
         }
