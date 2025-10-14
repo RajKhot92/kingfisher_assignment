@@ -15,7 +15,7 @@ public class PromotionEngine {
 
     private final List<SKUUnit> cart = new ArrayList<>();
 
-    public void initialize() {
+    public void initialize() throws Exception {
         initializeSKUPrice();
         initializePromotion();
         initializeCart();
@@ -24,7 +24,7 @@ public class PromotionEngine {
 
     public void addToCart(String skuId, int qty) throws Exception {
         if(isValidSKUId(skuId) && isValidQty(qty)){
-            cart.add(updateCart(new SKUUnit(skuId, qty)));
+            cart.add(new SKUUnit(skuId, qty));
         }
     }
 
@@ -33,28 +33,74 @@ public class PromotionEngine {
                 .filter(x-> x.getSkuId().equals(skuUnit.getSkuId()))
                 .findAny();
         if(existUnit.isPresent()){
+            if(!skuUnit.isPromotionApplied()) {
+                Optional<Promotion> existPromotion = listPromotion.stream().distinct()
+                        .filter(x -> x.getOffer().contains(skuUnit.getSkuId()))
+                        .findAny();
+                if (existPromotion.isPresent()) {
+                    String offer = existPromotion.get().getOffer();
+                    if (offer.contains("*")) {
+                        int id = offer.indexOf("*");
+                        int offerQty = Integer.parseInt(offer.substring(id + 1));
+                        int remQty = (skuUnit.getQty() % offerQty);
+                        int offerCnt = (skuUnit.getQty() / offerQty);
 
-            Optional<Promotion> existPromotion = listPromotion.stream().distinct()
-                    .filter(x-> x.getOffer().contains(skuUnit.getSkuId()))
-                    .findAny();
-            if (existPromotion.isPresent()){
-                String offer = existPromotion.get().getOffer();
-                if (offer.contains("*")) {
-                    int id = offer.indexOf("*");
-                    int offerQty = Integer.parseInt(offer.substring(id + 1));
-                    int remQty = (skuUnit.getQty() % offerQty);
-                    int offerCnt = (skuUnit.getQty() / offerQty);
+                        double remPrice = existUnit.get().getPrice() * remQty;
+                        double offerPrice = existPromotion.get().getPrice() * offerCnt;
 
-                    double remPrice = existUnit.get().getPrice() * remQty;
-                    double offerPrice = existPromotion.get().getPrice() * offerCnt;
+                        double updatedPrice = remPrice + offerPrice;
+                        skuUnit.setPrice(updatedPrice);
+                        return skuUnit;
+                    } else if (offer.contains("&")) {
+                        int id = offer.indexOf("&");
+                        String skuId1 = offer.substring(0, id);
+                        String skuId2 = offer.substring(id + 1);
+                        if (existUnit.get().getSkuId().equals(skuId1)) {
+                            Optional<SKUUnit> offerUnit = cart.stream().filter(y -> y.getSkuId().equals(skuId2)).findAny();
+                            if (offerUnit.isPresent()) {
+                                int offerIndex = cart.indexOf(offerUnit.get());
+                                if (skuUnit.getQty() == offerUnit.get().getQty()) {
+                                    cart.get(offerIndex).setPromotionApplied(true);
+                                    double updatedPrice = existPromotion.get().getPrice() * skuUnit.getQty();
+                                    skuUnit.setPrice(updatedPrice);
+                                    return skuUnit;
 
-                    double updatedPrice = remPrice + offerPrice;
+                                } else if (skuUnit.getQty() > offerUnit.get().getQty()) {
+                                    cart.get(offerIndex).setPromotionApplied(true);
+
+                                    int remQty = skuUnit.getQty() - offerUnit.get().getQty();
+                                    double remPrice = existUnit.get().getPrice() * remQty;
+                                    double offerPrice = existPromotion.get().getPrice() * offerUnit.get().getQty();
+                                    double updatedPrice = offerPrice + remPrice;
+                                    skuUnit.setPrice(updatedPrice);
+                                    return skuUnit;
+                                } else if (skuUnit.getQty() < offerUnit.get().getQty()) {
+                                    int remQty = offerUnit.get().getQty() - skuUnit.getQty();
+                                    cart.get(offerIndex).setQty(remQty);
+                                    cart.get(offerIndex).setPromotionApplied(true);
+
+                                    double updatedPrice = existPromotion.get().getPrice() * skuUnit.getQty();
+                                    skuUnit.setPrice(updatedPrice);
+                                    return skuUnit;
+                                }
+                            } else {
+                                double updatedPrice = existUnit.get().getPrice() * skuUnit.getQty();
+                                skuUnit.setPrice(updatedPrice);
+                                return skuUnit;
+                            }
+                        } else {
+                            return null;
+                        }
+                        return null;
+                    } else {
+                        throw new Exception("Invalid SKU Unit added to cart!");
+                    }
+                } else {
+                    double updatedPrice = existUnit.get().getPrice() * skuUnit.getQty();
                     skuUnit.setPrice(updatedPrice);
                     return skuUnit;
-                }else {
-                    return null;
                 }
-            }else {
+            }else{
                 double updatedPrice = existUnit.get().getPrice() * skuUnit.getQty();
                 skuUnit.setPrice(updatedPrice);
                 return skuUnit;
@@ -139,7 +185,7 @@ public class PromotionEngine {
         try {
             updatePromotion("A*3", 130);
             updatePromotion("B*2", 45);
-//            updatePromotion("C&D", 30);
+            updatePromotion("C&D", 30);
 
             listPromotion.forEach(x -> System.out.println(x.toString()));
         }catch (Exception e){
@@ -149,9 +195,10 @@ public class PromotionEngine {
 
     private void initializeCart() {
         try {
-            addToCart("A", 5);
+            addToCart("A", 3);
             addToCart("B", 5);
             addToCart("C", 1);
+            addToCart("D", 1);
 
             cart.forEach(x -> System.out.println(x.toString()));
         }catch (Exception e){
@@ -159,9 +206,11 @@ public class PromotionEngine {
         }
     }
 
-    private void processCart() {
+    private void processCart() throws Exception {
         double finalAmount = 0;
         for (SKUUnit unit :cart){
+            SKUUnit updateUnit = updateCart(unit);
+            System.out.println(unit.getSkuId()+" - "+unit.getPrice());
             finalAmount += unit.getPrice();
         }
         System.out.println("Final Amount: "+finalAmount);

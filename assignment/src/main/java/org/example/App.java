@@ -8,7 +8,7 @@ import com.assignment.job.PromotionEngine;
  */
 public class App 
 {
-    public static void main( String[] args ) {
+    public static void main( String[] args ) throws Exception {
 
         System.out.println( "Promotion Engine Started!" );
         PromotionEngine engine = new PromotionEngine();

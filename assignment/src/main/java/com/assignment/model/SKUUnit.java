@@ -4,6 +4,7 @@ public class SKUUnit {
     private String skuId;
     private double price;
     private int qty=0;
+    private boolean promotionApplied = false;
 
     public SKUUnit(String skuId, double price) {
         this.skuId = skuId;
@@ -12,12 +13,6 @@ public class SKUUnit {
 
     public SKUUnit(String skuId, int qty) {
         this.skuId = skuId;
-        this.qty = qty;
-    }
-
-    public SKUUnit(String skuId, double price, int qty) {
-        this.skuId = skuId;
-        this.price = price;
         this.qty = qty;
     }
 
@@ -43,6 +38,14 @@ public class SKUUnit {
 
     public void setQty(int qty) {
         this.qty = qty;
+    }
+
+    public boolean isPromotionApplied() {
+        return promotionApplied;
+    }
+
+    public void setPromotionApplied(boolean promotionApplied) {
+        this.promotionApplied = promotionApplied;
     }
 
     @Override
