@@ -19,7 +19,8 @@ public class PromotionEngine {
         initializeSKUPrice();
         initializePromotion();
         initializeCart();
-        processCart();
+        double finalAmount = processCart();
+        System.out.println("Final Amount: "+finalAmount);
     }
 
     public void addToCart(String skuId, int qty) throws Exception {
@@ -63,16 +64,17 @@ public class PromotionEngine {
                                     cart.get(offerIndex).setPromotionApplied(true);
                                     double updatedPrice = existPromotion.get().getPrice() * skuUnit.getQty();
                                     skuUnit.setPrice(updatedPrice);
+                                    cart.get(offerIndex).setQty(0);
                                     return skuUnit;
 
                                 } else if (skuUnit.getQty() > offerUnit.get().getQty()) {
                                     cart.get(offerIndex).setPromotionApplied(true);
-
                                     int remQty = skuUnit.getQty() - offerUnit.get().getQty();
                                     double remPrice = existUnit.get().getPrice() * remQty;
                                     double offerPrice = existPromotion.get().getPrice() * offerUnit.get().getQty();
                                     double updatedPrice = offerPrice + remPrice;
                                     skuUnit.setPrice(updatedPrice);
+                                    cart.get(offerIndex).setQty(0);
                                     return skuUnit;
                                 } else if (skuUnit.getQty() < offerUnit.get().getQty()) {
                                     int remQty = offerUnit.get().getQty() - skuUnit.getQty();
@@ -193,7 +195,7 @@ public class PromotionEngine {
         }
     }
 
-    private void initializeCart() {
+    public void initializeCart() {
         try {
             addToCart("A", 3);
             addToCart("B", 5);
@@ -206,13 +208,13 @@ public class PromotionEngine {
         }
     }
 
-    private void processCart() throws Exception {
+    public double processCart() throws Exception {
         double finalAmount = 0;
         for (SKUUnit unit :cart){
             SKUUnit updateUnit = updateCart(unit);
             System.out.println(unit.getSkuId()+" - "+unit.getPrice());
             finalAmount += unit.getPrice();
         }
-        System.out.println("Final Amount: "+finalAmount);
+        return finalAmount;
     }
 }
