@@ -17,6 +17,9 @@ public class App
 
         System.out.println( "Password Verification Started!" );
         PasswordVerification verification = new PasswordVerification();
-        verification.validatePassword("allsmallletters");
+        String msg = verification.validatePassword("ValidPwd123");
+        System.out.println("msg= "+msg);
+        String msg1 = verification.validatePasswordAdvanced("ValidPwd123");
+        System.out.println("msg= "+msg1);
     }
 }

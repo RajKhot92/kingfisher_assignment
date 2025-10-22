@@ -1,5 +1,6 @@
 package com.assignment.job;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PasswordVerification {
@@ -24,26 +25,38 @@ public class PasswordVerification {
         return Pattern.matches(".*[0-9].*", pwd);
     }
 
-    public void validatePassword(String pwd){
+    public String validatePassword(String pwd){
         int count = 0;
-        if(isEmpty(pwd))
+        boolean containsLower = false;
+        if(!isEmpty(pwd))
             count++;
         if(isLargerThanEightChars(pwd))
             count++;
         if(isContainUppercaseLetter(pwd))
             count++;
-        if(isContainLowercaseLetter(pwd))
+        if(isContainLowercaseLetter(pwd)) {
             count++;
+            containsLower = true;
+        }
         if(isContainNumber(pwd))
             count++;
 
-        if(count >= 3){
-            System.out.println("Password is ok.");
+        if (count == 5){
+            return "Password verification is successful.";
+        }else if (count >= 3 && containsLower){
+            return "Password is ok. But make it strong using at least one uppercase, lowercase and number.";
+        }else {
+            return "Sorry, password is never ok. Kindly use at least one uppercase, lowercase and number.";
         }
-//        System.out.println("isLargerThanEightChars= "+isLargerThanEightChars(pwd));
-//        System.out.println("isEmpty= "+isEmpty(pwd));
-//        System.out.println("isContainUppercaseLetter= "+isContainUppercaseLetter(pwd));
-//        System.out.println("isContainLowercaseLetter= "+isContainLowercaseLetter(pwd));
-//        System.out.println("isContainNumber= "+isContainNumber(pwd));
+    }
+
+    public String validatePasswordAdvanced(String pwd){
+        Pattern pattern = Pattern.compile("[A-Za-z0-9]{9,}+", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(pwd);
+        if (matcher.matches()){
+            return "Password verification is successful.";
+        }else {
+            return "Sorry, password is never ok. Password should be of at least 8 characters. Kindly use at least one uppercase, lowercase and number.";
+        }
     }
 }
